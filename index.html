@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor Integrado - Login e Estoque</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f3f4f6;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1f2937;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --report-color: #d97706;
+            --pdf-color: #dc2626;
+            --pdf-hover: #b91c1c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Telas de Autenticação (Login / Cadastro) */
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .auth-container h2 {
+            margin-top: 0;
+            color: #312e81;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .auth-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .auth-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .auth-group input {
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .auth-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .auth-toggle a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Container do Painel Principal (Estoque) */
+        .main-container {
+            width: 100%;
+            max-width: 1300px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 24px;
+            display: none; 
+            box-sizing: border-box;
+            align-self: flex-start;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #312e81;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .user-info-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            background: #e0e7ff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #3730a3;
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .btn-action-top {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .btn-action-top:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+        }
+
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        .select-dia, .input-data {
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        /* Cabeçalho do Relatório Impresso / Modo Relatório */
+        .report-header-company {
+            display: none;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-header-company .logo-container img {
+            max-height: 80px;
+            max-width: 200px;
+            object-fit: contain;
+        }
+
+        .report-header-company .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .report-header-company .company-details {
+            text-align: right;
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .report-header-company .company-details h2 {
+            margin: 0 0 5px 0;
+            color: #1f2937;
+            font-size: 20px;
+        }
+
+        /* Seção de Cadastro de Produtos */
+        .cadastro-container {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .cadastro-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #312e81;
+            margin-bottom: 12px;
+            margin-top: 0;
+        }
+
+        .cadastro-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        /* Abas */
+        .tabs-container {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: #e5e7eb;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: #4b5563;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 -2px 10px rgba(79, 70, 229, 0.2);
+        }
+
+        .tab-btn.report-tab {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+            margin-left: auto;
+        }
+
+        .tab-btn.report-tab.active {
+            background: var(--report-color);
+            color: white;
+        }
+
+        /* Tabela Grade Aberta */
+        .table-responsive {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            background-color: #eff6ff;
+        }
+
+        .formula-cell {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            padding: 8px;
+            display: inline-block;
+            width: 80px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .negative {
+            color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .positive-green {
+            color: #059669;
+            background-color: #ecfdf5;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; height: 38px; }
+        .btn-pdf { background-color: var(--pdf-color); color: white; }
+        .btn-pdf:hover { background-color: var(--pdf-hover); }
+
+        .report-banner {
+            background-color: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-left: 4px solid var(--report-color);
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14.5px;
+            color: #92400e;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .report-banner-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Modal Formulário da Empresa */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .modal-box h3 { margin-top: 0; color: #312e81; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; }
+
+        @media print {
+            body { background: none !important; color: #000 !important; padding: 0; margin: 0; }
+            .main-container { box-shadow: none !important; backdrop-filter: none !important; background: white !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+            h1, .cadastro-container, .tabs-container, .actions-bar, .btn-pdf, .report-banner, .user-info-bar { display: none !important; }
+            .report-header-company { display: flex !important; border: none !important; border-bottom: 2px dashed #000 !important; border-radius: 0 !important; padding: 10px 0 !important; }
+            table { width: 100% !important; border: 1px solid #000 !important; }
+            th, td { border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; }
+            th { background-color: #eaeaea !important; }
+            .formula-cell { background: none !important; border: none !important; width: auto !important; color: #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="screen-login" class="auth-container">
+    <h2>Acessar o Sistema</h2>
+    <div class="auth-form">
+        <div class="auth-group">
+            <label for="login-email">E-mail da Empresa</label>
+            <input type="email" id="login-email" placeholder="exemplo@empresa.com">
+        </div>
+        <div class="auth-group">
+            <label for="login-senha">Senha</label>
+            <input type="password" id="login-senha" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" style="justify-content: center;" onclick="efetuarLogin()">Entrar</button>
+        <div class="auth-toggle">
+            Não tem cadastro? <a onclick="showScreen('register')">Cadastrar Empresa</a>
+        </div>
+    </div>
+</div>
+
+<div id="screen-register" class="auth-container" style="display: none;">
+    <h2>Cadastrar Empresa</h2>
+    <div class="auth-form">
+        <div class="auth-group">
+            <label for="reg-nome">Nome Fantasia / Empresa</label>
+            <input type="text" id="reg-nome" placeholder="Ex: Restaurante do Chefe">
+        </div>
+        <div class="auth-group">
+            <label for="reg-email">E-mail Corporativo</label>
+            <input type="email" id="reg-email" placeholder="contato@empresa.com">
+        </div>
+        <div class="auth-group">
+            <label for="reg-senha">Criar Senha</label>
+            <input type="password" id="reg-senha" placeholder="Mínimo 6 caracteres">
+        </div>
+        <button class="btn btn-success" style="justify-content: center; height: auto;" onclick="efetuarCadastro()">Registrar Empresa</button>
+        <div class="auth-toggle">
+            Já é cadastrado? <a onclick="showScreen('login')">Fazer Login</a>
+        </div>
+    </div>
+</div>
+
+<div id="screen-dashboard" class="main-container">
+    <h1>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <span id="page-title">Lançamentos de Estoque</span>
+            <div class="user-info-bar">
+                🏢 <span id="info-empresa-nome">Empresa</span>
+                <button class="btn-action-top" onclick="abrirModalEmpresa()">🏢 Minha Empresa</button>
+                <button class="btn-logout" onclick="efetuarLogout()">Sair</button>
+            </div>
+        </div>
+        
+        <div class="filter-container">
+            <label for="data-sistema">Data Ref:</label>
+            <input type="date" id="data-sistema" class="input-data" onchange="processarNovaData(this.value)">
+
+            <div id="dia-filter-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                <label for="diaSemana">Dia:</label>
+                <select id="diaSemana" class="select-dia" onchange="mudarDia(this.value)">
+                    <option value="SEGUNDA">Segunda-feira</option>
+                    <option value="TERÇA">Terça-feira</option>
+                    <option value="QUARTA">Quarta-feira</option>
+                    <option value="QUINTA">Quinta-feira</option>
+                    <option value="SEXTA">Sexta-feira</option>
+                    <option value="SÁBADO">Sábado</option>
+                    <option value="DOMINGO">Domingo</option>
+                </select>
+            </div>
+        </div>
+    </h1>
+
+    <div id="reportHeaderCompany" class="report-header-company">
+        <div class="logo-container" id="report-logo-area">
+            <div class="logo-placeholder">Sem Logo</div>
+        </div>
+        <div class="company-details">
+            <h2 id="rep-comp-nome">Nome da Empresa</h2>
+            <p><strong>CNPJ:</strong> <span id="rep-comp-cnpj">-</span></p>
+            <p><strong>Tel:</strong> <span id="rep-comp-tel">-</span> | <strong>E-mail:</strong> <span id="rep-comp-email">-</span></p>
+            <p><strong>Endereço:</strong> <span id="rep-comp-end">-</span></p>
+            <p style="margin-top: 8px; font-size: 14px; color:#1e40af;"><strong id="rep-semana-ref">Relatório de Lançamentos Semanais</strong></p>
+        </div>
+    </div>
+
+    <div id="reportBanner" class="report-banner">
+        <div class="report-banner-content">
+            <div>
+                📊 <strong>Modo Relatório Semanal Ativo:</strong> Exibindo a somatória acumulada. Dados de edição congelados.
+            </div>
+            <button class="btn btn-pdf" onclick="gerarPDFCategoria()">📄 Gerar PDF / Imprimir</button>
+        </div>
+    </div>
+
+    <div class="cadastro-container" id="cadastroSection">
+        <p class="cadastro-title">➕ Cadastrar Novo Produto no Sistema</p>
+        <div class="cadastro-form">
+            <div class="form-group">
+                <label for="newProdNome">Nome do Produto</label>
+                <input type="text" id="newProdNome" placeholder="Ex: COCA-COLA LATA">
+            </div>
+            <div class="form-group">
+                <label for="newProdUnid">Unidade</label>
+                <select id="newProdUnid">
+                    <option value="UNI">UNI</option>
+                    <option value="KG">KG</option>
+                    <option value="CX">CX</option>
+                    <option value="DOSE">DOSE</option>
+                    <option value="PCT">PCT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newProdCategoria">Categoria Destino</label>
+                <select id="newProdCategoria">
+                    <option value="BEBIDAS">BEBIDAS</option>
+                    <option value="ESTOQUE_SECO">ESTOQUE SECO</option>
+                    <option value="FRIOS">FRIOS</option>
+                    <option value="HORTIFRUTI">HORTIFRUTI</option>
+                    <option value="DESTILADOS">DESTILADOS</option>
+                </select>
+            </div>
+            <button class="btn btn-success" onclick="cadastrarProduto()">Cadastrar Produto</button>
+        </div>
+    </div>
+
+    <div class="tabs-container" id="tabs">
+        <button class="tab-btn active" onclick="switchTab('BEBIDAS')">BEBIDAS</button>
+        <button class="tab-btn" onclick="switchTab('ESTOQUE_SECO')">ESTOQUE SECO</button>
+        <button class="tab-btn" onclick="switchTab('FRIOS')">FRIOS</button>
+        <button class="tab-btn" onclick="switchTab('HORTIFRUTI')">HORTIFRUTI</button>
+        <button class="tab-btn" onclick="switchTab('DESTILADOS')">DESTILADOS</button>
+        <button class="tab-btn report-tab" onclick="switchTab('RELATORIOS')">📊 RELATÓRIOS SEMANAIS</button>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead id="table-header"></thead>
+            <tbody id="inventory-grid"></tbody>
+        </table>
+    </div>
+
+    <div class="actions-bar" id="actionsBar">
+        <button class="btn btn-primary" onclick="salvarDados()">Salvar Lançamentos</button>
+    </div>
+</div>
+
+<div id="modal-empresa" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Dados Geográficos & Comerciais da Empresa</h3>
+        <div class="auth-form" style="gap:12px;">
+            <div class="auth-group">
+                <label for="comp-nome">Nome Fantasia</label>
+                <input type="text" id="comp-nome">
+            </div>
+            <div class="auth-group">
+                <label for="comp-cnpj">CNPJ</label>
+                <input type="text" id="comp-cnpj" placeholder="00.000.000/0001-00">
+            </div>
+            <div class="auth-group">
+                <label for="comp-tel">Telefone Comercial</label>
+                <input type="text" id="comp-tel" placeholder="(00) 00000-0000">
+            </div>
+            <div class="auth-group">
+                <label for="comp-email">E-mail de Atendimento</label>
+                <input type="email" id="comp-email">
+            </div>
+            <div class="auth-group">
+                <label for="comp-end">Endereço Completo</label>
+                <input type="text" id="comp-end" placeholder="Rua, Número, Bairro, Cidade - UF">
+            </div>
+            <div class="auth-group">
+                <label for="comp-logo">Logomarca (Upload JPG/PNG)</label>
+                <input type="file" id="comp-logo" accept="image/*" onchange="converterLogoBase64(this)">
+                <div id="preview-logo-modal" style="margin-top: 5px; text-align: center;"></div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn btn-success" style="flex:1; height:auto;" onclick="salvarDadosEmpresa()">Salvar Configurações</button>
+                <button class="btn" style="background:#6b7280; color:white;" onclick="fecharModalEmpresa()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let empresaLogada = null; 
+    let abaAtual = 'BEBIDAS';
+    let categoriaRelatorioFiltro = 'BEBIDAS'; 
+    let diaAtual = 'SEGUNDA';
+    let modoRelatorio = false;
+    let estoqueDados = {};
+    let logoBase64Global = ""; // Guarda temporariamente a imagem em string
+
+    const listaProdutosPadrao = {
+        BEBIDAS: [{ produto: "HEIN. 600 ML", unid: "UNI" }, { produto: "AGUA COM GAS", unid: "UNI" }],
+        ESTOQUE_SECO: [{ produto: "ARROZ", unid: "KG" }, { produto: "FEIJÃO PRETO", unid: "KG" }],
+        FRIOS: [{ produto: "PICANHA", unid: "KG" }],
+        HORTIFRUTI: [{ produto: "CEBOLA", unid: "KG" }],
+        DESTILADOS: [{ produto: "BLACK LABEL", unid: "DOSE" }]
+    };
+
+    function showScreen(screen) {
+        document.getElementById('screen-login').style.display = screen === 'login' ? 'block' : 'none';
+        document.getElementById('screen-register').style.display = screen === 'register' ? 'block' : 'none';
+        document.getElementById('screen-dashboard').style.display = screen === 'dashboard' ? 'block' : 'none';
+        document.body.style.alignItems = screen === 'dashboard' ? 'flex-start' : 'center';
+    }
+
+    function efetuarCadastro() {
+        const nome = document.getElementById('reg-nome').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const senha = document.getElementById('reg-senha').value;
+
+        if(!nome || !email || !senha) { alert("Preencha todos os campos!"); return; }
+        
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+        if(empresas[email]) { alert("Este e-mail já está cadastrado!"); return; }
+
+        empresas[email] = { nome: nome, senha: senha };
+        localStorage.setItem('gestor_empresas', JSON.stringify(empresas));
+
+        // Inicializa dados de perfil padrão da empresa vazios
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        perfis[email] = { nome: nome, cnpj: "", tel: "", email: email, endereco: "", logo: "" };
+        localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+
+        alert("Empresa cadastrada com sucesso!");
+        showScreen('login');
+    }
+
+    function efetuarLogin() {
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const senha = document.getElementById('login-senha').value;
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+
+        if(!empresas[email] || empresas[email].senha !== senha) {
+            alert("E-mail ou senha incorretos!");
+            return;
+        }
+
+        empresaLogada = email;
+        
+        // Carrega o Perfil Comercial atualizado
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        let perfilEmpresa = perfis[email] || { nome: empresas[email].nome };
+        document.getElementById('info-empresa-nome').innerText = perfilEmpresa.nome || empresas[email].nome;
+
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('data-sistema').value = hoje;
+        
+        carregarDadosDaSemana(hoje);
+        showScreen('dashboard');
+        renderTable();
+    }
+
+    function efetuarLogout() {
+        empresaLogada = null;
+        estoqueDados = {};
+        showScreen('login');
+    }
+
+    // --- MODAL DE GERENCIAMENTO DA EMPRESA ---
+    function abrirModalEmpresa() {
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        let p = perfis[empresaLogada] || { nome: "", cnpj: "", tel: "", email: "", endereco: "", logo: "" };
+
+        document.getElementById('comp-nome').value = p.nome || "";
+        document.getElementById('comp-cnpj').value = p.cnpj || "";
+        document.getElementById('comp-tel').value = p.tel || "";
+        document.getElementById('comp-email').value = p.email || "";
+        document.getElementById('comp-end').value = p.endereco || "";
+        
+        logoBase64Global = p.logo || "";
+        const preview = document.getElementById('preview-logo-modal');
+        if(logoBase64Global) {
+            preview.innerHTML = `<img src="${logoBase64Global}" style="max-height:60px; margin-top:5px; border-radius:4px;">`;
+        } else {
+            preview.innerHTML = "";
+        }
+
+        document.getElementById('modal-empresa').style.display = 'flex';
+    }
+
+    function fecharModalEmpresa() {
+        document.getElementById('modal-empresa').style.display = 'none';
+    }
+
+    function converterLogoBase64(inputElement) {
+        const file = inputElement.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                logoBase64Global = e.target.result;
+                document.getElementById('preview-logo-modal').innerHTML = `<img src="${logoBase64Global}" style="max-height:60px; margin-top:5px; border-radius:4px;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function salvarDadosEmpresa() {
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        
+        perfis[empresaLogada] = {
+            nome: document.getElementById('comp-nome').value.trim(),
+            cnpj: document.getElementById('comp-cnpj').value.trim(),
+            tel: document.getElementById('comp-tel').value.trim(),
+            email: document.getElementById('comp-email').value.trim(),
+            endereco: document.getElementById('comp-end').value.trim(),
+            logo: logoBase64Global
+        };
+
+        localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+        document.getElementById('info-empresa-nome').innerText = perfis[empresaLogada].nome;
+        
+        alert("Dados comerciais e marca atualizados com sucesso!");
+        fecharModalEmpresa();
+        if(modoRelatorio) atualizarCabecalhoRelatorio();
+    }
+
+    // --- CARREGAMENTO DO CABEÇALHO COMERCIAL NO RELATÓRIO ---
+    function atualizarCabecalhoRelatorio() {
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        let p = perfis[empresaLogada] || {};
+
+        document.getElementById('rep-comp-nome').innerText = p.nome || "Empresa não configurada";
+        document.getElementById('rep-comp-cnpj').innerText = p.cnpj || "-";
+        document.getElementById('rep-comp-tel').innerText = p.tel || "-";
+        document.getElementById('rep-comp-email').innerText = p.email || "-";
+        document.getElementById('rep-comp-end').innerText = p.endereco || "-";
+
+        const areaLogo = document.getElementById('report-logo-area');
+        if(p.logo) {
+            areaLogo.innerHTML = `<img src="${p.logo}">`;
+        } else {
+            areaLogo.innerHTML = `<div class="logo-placeholder">Sem Marca</div>`;
+        }
+
+        let dataInputGlobal = document.getElementById('data-sistema').value;
+        let segundaFormatada = formatarDataBR(obterSegundaFeira(dataInputGlobal));
+        document.getElementById('rep-semana-ref').innerText = `Relatório de Lançamentos Acumulados - Semana de: ${segundaFormatada} [Categoria: ${categoriaRelatorioFiltro}]`;
+    }
+
+    // --- LÓGICA DE ESTOQUE ---
+    function criarEstruturaDias(estoqueInicialPadrao) {
+        const dias = ['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO', 'DOMINGO'];
+        let estrutura = {};
+        dias.forEach(dia => {
+            estrutura[dia] = { inicial: estoqueInicialPadrao, entrada: 0, vendas: 0, perda: 0, final: estoqueInicialPadrao };
+        });
+        return estrutura;
+    }
+
+    function obterSegundaFeira(dataInput) {
+        let data = dataInput ? new Date(dataInput) : new Date();
+        data.setMinutes(data.getMinutes() + data.getTimezoneOffset());
+        let diaSemana = data.getDay(); 
+        let diferenca = data.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); 
+        return new Date(data.setDate(diferenca));
+    }
+
+    function formatarDataBR(data) {
+        let dia = String(data.getDate()).padStart(2, '0');
+        let mes = String(data.getMonth() + 1).padStart(2, '0');
+        return `${dia}/${mes}/${data.getFullYear()}`;
+    }
+
+    function formatarChaveSemana(dataRef) {
+        let seg = obterSegundaFeira(dataRef);
+        let dia = String(seg.getDate()).padStart(2, '0');
+        let mes = String(seg.getMonth() + 1).padStart(2, '0');
+        return `estoque_${empresaLogada}_${seg.getFullYear()}_${mes}_${dia}`;
+    }
+
+    function carregarDadosDaSemana(dataRef) {
+        const chave = formatarChaveSemana(dataRef);
+        const dadosSalvos = localStorage.getItem(chave);
+
+        if (dadosSalvos) {
+            estoqueDados = JSON.parse(dadosSalvos);
+        } else {
+            estoqueDados = {};
+            for (let categoria in listaProdutosPadrao) {
+                estoqueDados[categoria] = listaProdutosPadrao[categoria].map(p => ({
+                    produto: p.produto, unid: p.unid, lancamentos: criarEstruturaDias(0)
+                }));
+            }
+        }
+    }
+
+    function processarNovaData(novaData) {
+        carregarDadosDaSemana(novaData);
+        if (modoRelatorio) atualizarCabecalhoRelatorio();
+        renderTable();
+    }
+
+    function cadastrarProduto() {
+        const nome = document.getElementById('newProdNome').value.trim().toUpperCase();
+        const unid = document.getElementById('newProdUnid').value;
+        const categoriaTarget = document.getElementById('newProdCategoria').value;
+
+        if (!nome) { alert('Digite o nome do produto!'); return; }
+
+        const existe = estoqueDados[categoriaTarget].some(item => item.produto === nome);
+        if (existe) { alert('Este produto já está cadastrado!'); return; }
+
+        estoqueDados[categoriaTarget].push({
+            produto: nome, unid: unid, lancamentos: criarEstruturaDias(0)
+        });
+
+        const chave = formatarChaveSemana(document.getElementById('data-sistema').value);
+        localStorage.setItem(chave, JSON.stringify(estoqueDados));
+
+        document.getElementById('newProdNome').value = '';
+        switchTab(categoriaTarget);
+    }
+
+    function renderTable() {
+        const header = document.getElementById('table-header');
+        const tbody = document.getElementById('inventory-grid');
+        tbody.innerHTML = '';
+
+        if (modoRelatorio) {
+            header.innerHTML = `<tr><th>Produto</th><th>Unid.</th><th>Inicial (Seg)</th><th>Entradas</th><th>Vendas</th><th>Perdas</th><th>Final (Dom)</th><th>Diferença</th></tr>`;
+            if (estoqueDados[categoriaRelatorioFiltro]) {
+                estoqueDados[categoriaRelatorioFiltro].forEach(item => {
+                    let tEntrada = 0, tVendas = 0, tPerda = 0;
+                    const dias = ['SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO', 'DOMINGO'];
+                    let estInicial = item.lancamentos['SEGUNDA'].inicial;
+                    let estFinal = item.lancamentos['DOMINGO'].final;
+
+                    dias.forEach(d => {
+                        tEntrada += item.lancamentos[d].entrada;
+                        tVendas += item.lancamentos[d].vendas;
+                        tPerda += item.lancamentos[d].perda;
+                    });
+
+                    let saldoEsperado = estInicial + tEntrada - tVendas - tPerda;
+                    let dif = estFinal - saldoEsperado;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.produto}</strong></td>
+                        <td><span style="color:#6b7280; font-weight:600;">${item.unid}</span></td>
+                        <td><span class="formula-cell">${estInicial}</span></td>
+                        <td><span class="formula-cell" style="color:#1e40af;">${tEntrada}</span></td>
+                        <td><span class="formula-cell" style="color:#991b1b;">${tVendas}</span></td>
+                        <td><span class="formula-cell" style="color:#9a3412;">${tPerda}</span></td>
+                        <td><span class="formula-cell" style="color:#166534;">${estFinal}</span></td>
+                        <td><span class="formula-cell ${dif < 0 ? 'negative' : (dif > 0 ? 'positive-green' : '')}">${dif > 0 ? '+' + dif : dif}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        } else {
+            header.innerHTML = `<tr><th>Produto</th><th>Unid.</th><th>Estoque Inicial</th><th>Entrada</th><th>Vendas</th><th>Perda</th><th>Estoque Final</th><th>Diferença</th></tr>`;
+            if (estoqueDados[abaAtual]) {
+                estoqueDados[abaAtual].forEach((item, index) => {
+                    const v = item.lancamentos[diaAtual];
+                    const saldoEsperado = v.inicial + v.entrada - v.vendas - v.perda;
+                    const dif = v.final - saldoEsperado;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.produto}</strong></td>
+                        <td>${item.unid}</td>
+                        <td><input type="number" value="${v.inicial}" onchange="updateValue(${index}, 'inicial', this.value)"></td>
+                        <td><input type="number" value="${v.entrada}" onchange="updateValue(${index}, 'entrada', this.value)"></td>
+                        <td><input type="number" value="${v.vendas}" onchange="updateValue(${index}, 'vendas', this.value)"></td>
+                        <td><input type="number" value="${v.perda}" onchange="updateValue(${index}, 'perda', this.value)"></td>
+                        <td><input type="number" value="${v.final}" onchange="updateValue(${index}, 'final', this.value)"></td>
+                        <td><span class="formula-cell ${dif < 0 ? 'negative' : (dif > 0 ? 'positive-green' : '')}">${dif > 0 ? '+' + dif : dif}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+    }
+
+    function updateValue(index, field, value) {
+        estoqueDados[abaAtual][index].lancamentos[diaAtual][field] = parseFloat(value) || 0;
+        renderTable(); 
+    }
+
+    function mudarDia(novoDia) { diaAtual = novoDia; renderTable(); }
+
+    function switchTab(tabName) {
+        if (tabName === 'RELATORIOS') {
+            modoRelatorio = true; abaAtual = 'RELATORIOS';
+            document.getElementById('dia-filter-wrapper').style.display = 'none';
+            document.getElementById('cadastroSection').style.display = 'none';
+            document.getElementById('actionsBar').style.display = 'none';
+            document.getElementById('reportBanner').style.display = 'block';
+            document.getElementById('reportHeaderCompany').style.display = 'flex';
+            atualizarCabecalhoRelatorio();
+        } else {
+            modoRelatorio = false; abaAtual = tabName; categoriaRelatorioFiltro = tabName; 
+            document.getElementById('dia-filter-wrapper').style.display = 'flex';
+            document.getElementById('cadastroSection').style.display = 'block';
+            document.getElementById('actionsBar').style.display = 'flex';
+            document.getElementById('reportBanner').style.display = 'none';
+            document.getElementById('reportHeaderCompany').style.display = 'none';
+            document.getElementById('page-title').innerText = 'Lançamentos de Estoque';
+        }
+        atualizarLayoutAbas();
+        renderTable();
+    }
+
+    function atualizarLayoutAbas() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            const txt = btn.innerText;
+            if (abaAtual === 'RELATORIOS' && btn.classList.contains('report-tab')) btn.classList.add('active');
+            else if (txt === abaAtual || (abaAtual === 'ESTOQUE_SECO' && txt === 'ESTOQUE SECO')) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    function salvarDados() {
+        const chave = formatarChaveSemana(document.getElementById('data-sistema').value);
+        localStorage.setItem(chave, JSON.stringify(estoqueDados));
+        alert(`Lançamentos salvos com sucesso no sistema!`);
+    }
+
+    function gerarPDFCategoria() {
+        let segFormatada = formatarDataBR(obterSegundaFeira(document.getElementById('data-sistema').value)).replace(/\//g, '-');
+        document.title = `Relatorio_${categoriaRelatorioFiltro}_${segFormatada}`;
+        window.print();
+        document.title = "Gestor Integrado - Login e Estoque";
+    }
+</script>
+
+</body>
+</html>
