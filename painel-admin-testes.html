@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Gerenciador de Logins de Teste</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 30px;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #312e81;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Formulário de Criação */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-copy {
+            background: #3b82f6;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-copy:hover {
+            background: #1d4ed8;
+        }
+
+        /* Tabela de Logins */
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 2px solid #e5e7eb;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .credential-cell {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .credential-text {
+            flex: 1;
+            user-select: all;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-demo {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Atalhos Rápidos */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .action-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .action-card:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #312e81;
+            margin-bottom: 8px;
+        }
+
+        .action-card p {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .close-alert {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            color: #312e81;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            color: #6b7280;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            td, th {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🔐 Painel Admin - Gerenciador de Testes</h1>
+        <p>Crie e gerencie logins de teste para o sistema de controle de estoque</p>
+    </div>
+
+    <div class="content">
+        <!-- Alertas -->
+        <div id="alertContainer"></div>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalAccounts">0</div>
+                <div class="stat-label">Total de Contas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="demoAccounts">0</div>
+                <div class="stat-label">Contas Demo</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="customAccounts">0</div>
+                <div class="stat-label">Contas Personalizadas</div>
+            </div>
+        </div>
+
+        <!-- Seção: Criar Nova Conta -->
+        <div class="section">
+            <div class="section-title">➕ Criar Nova Conta de Teste</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="newEmail">E-mail</label>
+                    <input type="email" id="newEmail" placeholder="exemplo@teste.com">
+                </div>
+                <div class="form-group">
+                    <label for="newNome">Nome da Empresa</label>
+                    <input type="text" id="newNome" placeholder="Restaurante Teste">
+                </div>
+                <div class="form-group">
+                    <label for="newSenha">Senha</label>
+                    <input type="text" id="newSenha" placeholder="123456" value="123456">
+                </div>
+                <div class="form-group">
+                    <label for="newCNPJ">CNPJ (Opcional)</label>
+                    <input type="text" id="newCNPJ" placeholder="00.000.000/0001-00">
+                </div>
+                <button class="btn btn-success" onclick="criarContaTeste()">Criar Conta</button>
+            </div>
+        </div>
+
+        <!-- Seção: Atalhos Rápidos -->
+        <div class="section">
+            <div class="section-title">⚡ Criar Contas Demo Pré-configuradas</div>
+            <div class="quick-actions">
+                <div class="action-card" onclick="criarContaDemo('pizzaria@teste.com', 'Pizzaria Gourmet')">
+                    <h3>🍕 Pizzaria</h3>
+                    <p>pizzaria@teste.com</p>
+                </div>
+                <div class="action-card" onclick="criarContaDemo('churrascaria@teste.com', 'Churrascaria Elite')">
+                    <h3>🥩 Churrascaria</h3>
+                    <p>churrascaria@teste.com</p>
+                </div>
+                <div class="action-card" onclick="criarContaDemo('sushi@teste.com', 'Sushi Bar Premium')">
+                    <h3>🍣 Sushi Bar</h3>
+                    <p>sushi@teste.com</p>
+                </div>
+                <div class="action-card" onclick="criarContaDemo('burger@teste.com', 'Hamburgueria Artesanal')">
+                    <h3>🍔 Hamburgueria</h3>
+                    <p>burger@teste.com</p>
+                </div>
+                <div class="action-card" onclick="criarContaDemo('cafe@teste.com', 'Café Gourmet')">
+                    <h3>☕ Café</h3>
+                    <p>cafe@teste.com</p>
+                </div>
+                <div class="action-card" onclick="criarContaDemo('sorveteria@teste.com', 'Sorveteria Artesanal')">
+                    <h3>🍦 Sorveteria</h3>
+                    <p>sorveteria@teste.com</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Lista de Contas -->
+        <div class="section">
+            <div class="section-title">📋 Contas Existentes</div>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="exportarContas()">📥 Exportar JSON</button>
+                <button class="btn btn-danger" onclick="limparTodasAsContas()">🗑️ Limpar Tudo</button>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>E-mail</th>
+                            <th>Empresa</th>
+                            <th>Senha</th>
+                            <th>Tipo</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contasTable">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #9ca3af;">Nenhuma conta criada. Use o formulário acima para criar uma.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Seção: Importação -->
+        <div class="section">
+            <div class="section-title">📤 Importar Contas do JSON</div>
+            <div style="display: flex; gap: 10px;">
+                <input type="file" id="importFile" accept=".json" style="padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; flex: 1;">
+                <button class="btn btn-primary" onclick="importarContas()">Importar</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal de Confirmação -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Confirmar Ação</h2>
+        <p id="modalMessage"></p>
+        <div class="modal-buttons">
+            <button class="btn btn-danger" onclick="confirmarAcao()">Confirmar</button>
+            <button class="btn btn-secondary" onclick="cancelarAcao()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let acaoEmPendencia = null;
+
+    function showAlert(message, type = 'success') {
+        const container = document.getElementById('alertContainer');
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.innerHTML = `
+            <span>${message}</span>
+            <span class="close-alert" onclick="this.parentElement.remove()">✕</span>
+        `;
+        container.appendChild(alert);
+
+        setTimeout(() => {
+            if (alert.parentElement) alert.remove();
+        }, 4000);
+    }
+
+    function criarContaTeste() {
+        const email = document.getElementById('newEmail').value.trim().toLowerCase();
+        const nome = document.getElementById('newNome').value.trim();
+        const senha = document.getElementById('newSenha').value.trim();
+        const cnpj = document.getElementById('newCNPJ').value.trim();
+
+        if (!email || !nome || !senha) {
+            showAlert('Preencha email, nome e senha!', 'error');
+            return;
+        }
+
+        if (!email.includes('@')) {
+            showAlert('E-mail inválido!', 'error');
+            return;
+        }
+
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+        if (empresas[email]) {
+            showAlert('Este e-mail já está cadastrado!', 'error');
+            return;
+        }
+
+        empresas[email] = { nome: nome, senha: senha };
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        perfis[email] = {
+            nome: nome,
+            cnpj: cnpj || '00.000.000/0001-00',
+            tel: '(00) 00000-0000',
+            email: email,
+            endereco: 'Endereço de Teste',
+            logo: ''
+        };
+
+        localStorage.setItem('gestor_empresas', JSON.stringify(empresas));
+        localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+
+        showAlert(`✅ Conta criada com sucesso! Email: ${email}`, 'success');
+        document.getElementById('newEmail').value = '';
+        document.getElementById('newNome').value = '';
+        document.getElementById('newSenha').value = '123456';
+        document.getElementById('newCNPJ').value = '';
+
+        atualizarLista();
+    }
+
+    function criarContaDemo(email, nome) {
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+        if (empresas[email]) {
+            showAlert(`A conta ${email} já existe!`, 'info');
+            return;
+        }
+
+        empresas[email] = { nome: nome, senha: '123456' };
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        perfis[email] = {
+            nome: nome,
+            cnpj: '00.000.000/0001-00',
+            tel: '(00) 00000-0000',
+            email: email,
+            endereco: 'Endereço de Teste',
+            logo: ''
+        };
+
+        localStorage.setItem('gestor_empresas', JSON.stringify(empresas));
+        localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+
+        showAlert(`✅ Conta demo "${nome}" criada!`, 'success');
+        atualizarLista();
+    }
+
+    function copiarParaClipboard(text) {
+        navigator.clipboard.writeText(text);
+        showAlert('Copiado para a área de transferência!', 'info');
+    }
+
+    function deletarConta(email) {
+        acaoEmPendencia = () => {
+            let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+            let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+
+            delete empresas[email];
+            delete perfis[email];
+
+            localStorage.setItem('gestor_empresas', JSON.stringify(empresas));
+            localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+
+            showAlert(`Conta ${email} deletada!`, 'success');
+            atualizarLista();
+        };
+
+        document.getElementById('modalTitle').innerText = 'Deletar Conta';
+        document.getElementById('modalMessage').innerText = `Tem certeza que deseja deletar a conta ${email}?`;
+        document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function limparTodasAsContas() {
+        acaoEmPendencia = () => {
+            localStorage.removeItem('gestor_empresas');
+            localStorage.removeItem('gestor_perfis_empresas');
+            showAlert('Todas as contas foram deletadas!', 'success');
+            atualizarLista();
+        };
+
+        document.getElementById('modalTitle').innerText = 'Limpar Todas as Contas';
+        document.getElementById('modalMessage').innerText = 'Tem certeza? Esta ação não pode ser desfeita!';
+        document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function confirmarAcao() {
+        if (acaoEmPendencia) {
+            acaoEmPendencia();
+            acaoEmPendencia = null;
+        }
+        document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    function cancelarAcao() {
+        acaoEmPendencia = null;
+        document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    function atualizarLista() {
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+        const tbody = document.getElementById('contasTable');
+
+        tbody.innerHTML = '';
+
+        if (Object.keys(empresas).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9ca3af;">Nenhuma conta criada.</td></tr>';
+            document.getElementById('totalAccounts').innerText = '0';
+            document.getElementById('demoAccounts').innerText = '0';
+            document.getElementById('customAccounts').innerText = '0';
+            return;
+        }
+
+        let demoCount = 0;
+        let customCount = 0;
+
+        Object.entries(empresas).forEach(([email, data]) => {
+            const perfil = perfis[email] || {};
+            const isDemo = email.includes('teste.com');
+            if (isDemo) demoCount++;
+            else customCount++;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${email}</strong></td>
+                <td>${data.nome}</td>
+                <td>
+                    <div class="credential-cell">
+                        <span class="credential-text">••••••••</span>
+                        <button class="btn btn-copy" onclick="copiarParaClipboard('${data.senha}')">📋 Copiar</button>
+                    </div>
+                </td>
+                <td><span class="badge ${isDemo ? 'badge-demo' : 'badge-active'}">${isDemo ? '🎭 Demo' : '✓ Custom'}</span></td>
+                <td style="text-align: center;">
+                    <button class="btn btn-danger" onclick="deletarConta('${email}')">🗑️ Deletar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('totalAccounts').innerText = Object.keys(empresas).length;
+        document.getElementById('demoAccounts').innerText = demoCount;
+        document.getElementById('customAccounts').innerText = customCount;
+    }
+
+    function exportarContas() {
+        let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+        let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+
+        const dados = {
+            exportedAt: new Date().toISOString(),
+            accounts: Object.entries(empresas).map(([email, data]) => ({
+                email: email,
+                nome: data.nome,
+                senha: data.senha,
+                cnpj: perfis[email]?.cnpj || '00.000.000/0001-00',
+                tel: perfis[email]?.tel || '(00) 00000-0000',
+                endereco: perfis[email]?.endereco || 'Endereço de Teste'
+            }))
+        };
+
+        const dataStr = JSON.stringify(dados, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `contas-teste-${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+
+        showAlert('Arquivo exportado com sucesso!', 'success');
+    }
+
+    function importarContas() {
+        const file = document.getElementById('importFile').files[0];
+        if (!file) {
+            showAlert('Selecione um arquivo JSON!', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const dados = JSON.parse(e.target.result);
+                if (!Array.isArray(dados.accounts)) {
+                    throw new Error('Formato inválido');
+                }
+
+                let empresas = JSON.parse(localStorage.getItem('gestor_empresas')) || {};
+                let perfis = JSON.parse(localStorage.getItem('gestor_perfis_empresas')) || {};
+
+                dados.accounts.forEach(acc => {
+                    empresas[acc.email] = { nome: acc.nome, senha: acc.senha };
+                    perfis[acc.email] = {
+                        nome: acc.nome,
+                        cnpj: acc.cnpj || '00.000.000/0001-00',
+                        tel: acc.tel || '(00) 00000-0000',
+                        email: acc.email,
+                        endereco: acc.endereco || 'Endereço de Teste',
+                        logo: ''
+                    };
+                });
+
+                localStorage.setItem('gestor_empresas', JSON.stringify(empresas));
+                localStorage.setItem('gestor_perfis_empresas', JSON.stringify(perfis));
+
+                showAlert(`✅ ${dados.accounts.length} conta(s) importada(s)!`, 'success');
+                document.getElementById('importFile').value = '';
+                atualizarLista();
+            } catch (error) {
+                showAlert('Arquivo JSON inválido!', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Inicializar
+    atualizarLista();
+</script>
+
+</body>
+</html>
